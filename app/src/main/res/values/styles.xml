@@ -16,6 +16,8 @@
         <item name="windowNoTitle">true</item>
         <item name="android:colorBackground">#EBEBEB</item>
         <item name="android:windowBackground">@color/colorPrimary</item>
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:windowTranslucentStatus">true</item>
     </style>
 
     <style name="Normal.statusOver" parent="Normal" />

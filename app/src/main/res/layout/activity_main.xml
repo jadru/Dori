@@ -4,12 +4,22 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".MainActivity"
+    tools:context=".activity.MainActivity"
     android:id="@+id/bg">
 
     <include
         android:id="@+id/include"
         layout="@layout/content_main" />
+
+    <ProgressBar
+        android:id="@+id/progressBar"
+        style="@style/Widget.AppCompat.ProgressBar.Horizontal"
+        android:layout_width="match_parent"
+        android:layout_height="2dp"
+        android:layout_centerHorizontal="true"
+        android:max="100"
+        app:layout_anchor="@+id/url_edit"
+        app:layout_anchorGravity="top|center" />
 
     <EditText
         android:id="@+id/url_edit"
@@ -26,17 +36,9 @@
         android:textColor="@android:color/black"
         android:textSize="17sp"
         app:layout_anchor="@+id/include"
-        app:layout_anchorGravity="bottom|center" />
-
-    <ProgressBar
-        android:id="@+id/progressBar"
-        style="?android:attr/progressBarStyleHorizontal"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_centerHorizontal="true"
-        android:indeterminate="false"
-        android:max="100"
-        app:layout_anchor="@+id/url_bar"
-        app:layout_anchorGravity="top|center" />
+        app:layout_anchorGravity="bottom|center"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
 
 </android.support.design.widget.CoordinatorLayout>
