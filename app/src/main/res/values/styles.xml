@@ -18,6 +18,8 @@
         <item name="android:windowBackground">@color/colorPrimary</item>
         <item name="android:statusBarColor">@android:color/transparent</item>
         <item name="android:windowTranslucentStatus">true</item>
+        <item name="android:colorForeground">@color/foreground_material_light</item>
+        <item name="android:navigationBarColor">@android:color/background_dark</item>
     </style>
 
     <style name="Normal.statusOver" parent="Normal" />

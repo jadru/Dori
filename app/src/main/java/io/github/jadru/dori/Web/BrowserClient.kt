@@ -175,7 +175,6 @@ class WebBrowserClient(val activity: Activity, val webView: WebView,
         when (error!!.errorCode) {
             WebViewClient.ERROR_AUTHENTICATION -> {
                 // 서버에서 사용자 인증 실패
-
             }
             WebViewClient.ERROR_BAD_URL -> {
                 // 잘못된 URL
