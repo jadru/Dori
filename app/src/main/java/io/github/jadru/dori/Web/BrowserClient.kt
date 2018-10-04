@@ -158,11 +158,7 @@ class WebBrowserClient(val activity: Activity, val webView: WebView,
     fun whenError() {
         webView.loadUrl("file:///android_asset/error.html")
         Snackbar.make(webView, activity.resources.getString(R.string.errorloadpage), Snackbar.LENGTH_LONG)
-                .setAction(activity.resources.getString(R.string.btn_ok), object : View.OnClickListener {
-                    override fun onClick(v: View) {
-                        webView.loadUrl(homepagelink)
-                    }
-                }).show()
+                .setAction(activity.resources.getString(R.string.btn_ok)) { webView.loadUrl(homepagelink) }.show()
     }
 
     override fun onUnhandledKeyEvent(view: WebView?, event: KeyEvent?){
@@ -175,21 +171,31 @@ class WebBrowserClient(val activity: Activity, val webView: WebView,
         when (error!!.errorCode) {
             WebViewClient.ERROR_AUTHENTICATION -> {
                 // 서버에서 사용자 인증 실패
+                Snackbar.make(webView, "Error Authentication", Snackbar.LENGTH_LONG)
+                        .setAction("OK") { webView.goBack() }.show()
             }
             WebViewClient.ERROR_BAD_URL -> {
                 // 잘못된 URL
+                Snackbar.make(webView, "Wrong URL", Snackbar.LENGTH_LONG)
+                        .setAction("OK") { webView.goBack() }.show()
             }
             WebViewClient.ERROR_CONNECT -> {
                 // 서버로 연결 실패
+                Snackbar.make(webView, "Error to connect server", Snackbar.LENGTH_LONG)
+                        .setAction("OK") { webView.goBack() }.show()
             }
             WebViewClient.ERROR_FAILED_SSL_HANDSHAKE -> {
                 // SSL handshake 수행 실패
             }
             WebViewClient.ERROR_FILE -> {
                 // 일반 파일 오류
+                Snackbar.make(webView, "File error", Snackbar.LENGTH_LONG)
+                        .setAction("OK") { webView.goBack() }.show()
             }
             WebViewClient.ERROR_FILE_NOT_FOUND -> {
                 // 파일을 찾을 수 없습니다
+                Snackbar.make(webView, "File not found", Snackbar.LENGTH_LONG)
+                        .setAction("OK") { webView.goBack() }.show()
             }
             WebViewClient.ERROR_HOST_LOOKUP -> {
                 // 서버 또는 프록시 호스트 이름 조회 실패
