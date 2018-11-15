@@ -13,8 +13,9 @@ import android.webkit.*
 import android.widget.FrameLayout
 import android.widget.ProgressBar
 import io.github.jadru.dori.R
+import io.github.jadru.dori.activity.BrowserActivity
 
-class ChromeClient(activity: MainActivity, var proBar:ProgressBar) : WebChromeClient() {
+class ChromeClient(activity: BrowserActivity, var proBar:ProgressBar) : WebChromeClient() {
 
     protected var mActivity: Activity? = null
     private var mCustomView: View? = null

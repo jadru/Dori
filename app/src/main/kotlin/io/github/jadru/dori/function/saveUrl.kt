@@ -4,7 +4,6 @@ import android.app.Activity
 import android.content.Context
 import android.content.SharedPreferences
 import android.webkit.WebView
-import kotlinx.android.synthetic.main.content_main.*
 
 fun saveUrl(activity: Activity, webView: WebView){
     val pref: SharedPreferences = activity.getSharedPreferences(activity.packageName + "pref", 0)

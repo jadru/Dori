@@ -32,7 +32,6 @@ import io.github.jadru.dori.web.*
 import io.github.jadru.dori.function.saveUrl
 import io.github.jadru.dori.function.skinEngine
 import io.github.jadru.dori.web.checkStoragePermission
-import kotlinx.android.synthetic.main.fragment_browser.*
 
 class BrowserActivity : AppCompatActivity() {
 
@@ -41,7 +40,8 @@ class BrowserActivity : AppCompatActivity() {
     private var decorView: View? = null
     private var uiOption: Int = 0
     internal var searchengineurl: String? = ""
-    var homepagelink: String = "http://www.naver.com"
+    var homepagelink: String? = "http://www.naver.com"
+    val PREFS_FILENAME = "io.github.jadru.dori.prefs"
     var pref: SharedPreferences? = null
     var imm: InputMethodManager? = null
 
@@ -56,18 +56,15 @@ class BrowserActivity : AppCompatActivity() {
     @JavascriptInterface
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main)
+        setContentView(R.layout.activity_browser)
 
         addFragment(BrowserFragment(), R.id.fragment)
         checkStoragePermission(this)
-        setWebView(webView, progressBar)
 
         imm = getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
         window.setFlags(WindowManager.LayoutParams.FLAG_HARDWARE_ACCELERATED,
                 WindowManager.LayoutParams.FLAG_HARDWARE_ACCELERATED)
-
-        webView.webViewClient = WebBrowserClient(this, webView, progressBar, url_edit, homepagelink)
-        webView.webChromeClient = ChromeClient(this, progressBar)
+        pref = this.getSharedPreferences(PREFS_FILENAME, MODE_PRIVATE)
 
         skinEngine(this)
         setsettingsnow()
@@ -109,7 +106,7 @@ class BrowserActivity : AppCompatActivity() {
     fun setsettingsnow() {
         homepagelink = pref!!.getString("homepage", "http://www.google.com")
         searchengineurl = pref!!.getString("searchengine", "https://www.google.co.kr/search?q=")
-        if (!homepagelink.contains("http")) {
+        if (!homepagelink!!.contains("http")) {
             homepagelink = "http://$homepagelink"
         }
     }

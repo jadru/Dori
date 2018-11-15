@@ -9,6 +9,11 @@ import android.view.View
 import android.view.ViewGroup
 
 import io.github.jadru.dori.R
+import io.github.jadru.dori.activity.BrowserActivity
+import io.github.jadru.dori.web.ChromeClient
+import io.github.jadru.dori.web.WebBrowserClient
+import io.github.jadru.dori.web.setWebView
+import kotlinx.android.synthetic.main.fragment_browser.*
 
 // TODO: Rename parameter arguments, choose names that match
 // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
@@ -41,6 +46,9 @@ class BrowserFragment : Fragment() {
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
                               savedInstanceState: Bundle?): View? {
         // Inflate the layout for this fragment
+        setWebView(webView, progressBar)
+        webView.webViewClient = WebBrowserClient(BrowserActivity(), webView, progressBar, url_edit, "http://www.google.com")
+        webView.webChromeClient = ChromeClient(BrowserActivity(), progressBar)
         return inflater.inflate(R.layout.fragment_browser, container, false)
     }
 

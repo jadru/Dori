@@ -22,7 +22,7 @@
     <string name="desktopmodeon">DESKTOPMODE ON</string>
     <string name="desktopmodeoff">DESKTOPMODE OFF</string>
     <string name="finish">FINISH?</string>
-    <string name="loading">Loading...</string>
+    <string name="loading">Loading</string>
     <string name="downloaded">Downloaded File</string>
     <string name="fileopen">Open File</string>
     <string name="permissionfordownload">Get permission for just download</string>
