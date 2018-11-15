@@ -5,9 +5,6 @@ import android.app.AlertDialog
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
-import android.os.Message
-import android.support.v4.app.ActivityCompat
-import android.support.v4.app.ActivityCompat.startActivityForResult
 import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
@@ -15,7 +12,6 @@ import android.view.WindowManager
 import android.webkit.*
 import android.widget.FrameLayout
 import android.widget.ProgressBar
-import io.github.jadru.dori.activity.MainActivity
 import io.github.jadru.dori.R
 
 class ChromeClient(activity: MainActivity, var proBar:ProgressBar) : WebChromeClient() {

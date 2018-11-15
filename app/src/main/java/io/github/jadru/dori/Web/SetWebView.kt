@@ -1,13 +1,9 @@
 package io.github.jadru.dori.web
 
-import android.content.Context
 import android.net.Uri
 import android.view.View
 import android.webkit.*
 import android.widget.ProgressBar
-import io.github.jadru.dori.activity.MainActivity
-import android.webkit.JavascriptInterface
-
 
 
 var mUploadMsg: ValueCallback<Uri>? = null
@@ -41,8 +37,8 @@ fun setWebView(webView: WebView, progressBar: ProgressBar) {
 
     WebView.setWebContentsDebuggingEnabled(true)
 
-    webView.webChromeClient = ChromeClient(MainActivity(), progressBar)
-
     DownloadService(webView)
+
+
 
 }

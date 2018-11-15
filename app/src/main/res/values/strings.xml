@@ -63,4 +63,9 @@
     <string name="setting_2_3">Icon color black</string>
     <string name="setting_2_4">Set icon as black</string>
     <string name="title_activity_web">WebActivity</string>
+    <string name="title_activity_browser">BrowserActivity</string>
+    <string name="edit_typeurl">Type URL</string>
+
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
 </resources>

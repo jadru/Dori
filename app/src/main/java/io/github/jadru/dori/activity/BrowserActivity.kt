@@ -1,7 +1,6 @@
 package io.github.jadru.dori.activity
 
 import java.io.File
-import kotlinx.android.synthetic.main.activity_main.*
 
 import android.content.SharedPreferences
 import android.content.pm.PackageManager
@@ -16,45 +15,40 @@ import android.content.Intent
 import android.content.IntentFilter
 import android.os.Bundle
 import android.support.design.widget.Snackbar
+import android.support.v4.app.Fragment
+import android.support.v4.app.FragmentManager
+import android.support.v4.app.FragmentTransaction
 import android.support.v7.app.AppCompatActivity
 import android.view.KeyEvent
 import android.view.View
 import android.view.WindowManager
 import android.view.inputmethod.InputMethodManager
-import android.webkit.CookieSyncManager
+import android.webkit.CookieManager
 import android.webkit.JavascriptInterface
 import android.widget.Toast
 import io.github.jadru.dori.R
-import io.github.jadru.dori.function.reSizeAll
-import io.github.jadru.dori.function.reSizewithEdit
+import io.github.jadru.dori.fragment.BrowserFragment
 import io.github.jadru.dori.web.*
 import io.github.jadru.dori.function.saveUrl
 import io.github.jadru.dori.function.skinEngine
 import io.github.jadru.dori.web.checkStoragePermission
-import kotlinx.android.synthetic.main.content_main.*
+import kotlinx.android.synthetic.main.fragment_browser.*
 
-class MainActivity : AppCompatActivity() {
-
-    // MainActivity Var & Val
-    private var decorView: View? = null
-
-    private var uiOption: Int = 0
-    internal var yesorno = false
-    internal var searchengineurl: String? = ""
-    var homepagelink: String = "http://www.naver.com"
+class BrowserActivity : AppCompatActivity() {
 
     private val MY_PERMISSION_REQUEST_STORAGE = 100
     private val MY_PERMISSION_REQUEST_LOCATION = 101
-
+    private var decorView: View? = null
+    private var uiOption: Int = 0
+    internal var searchengineurl: String? = ""
+    var homepagelink: String = "http://www.naver.com"
     var pref: SharedPreferences? = null
-
     var imm: InputMethodManager? = null
 
     private val completeReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
-            val res = context.resources
-            Snackbar.make(bg, resources.getString(R.string.downloaded), Snackbar.LENGTH_LONG)
-                    .setAction(resources.getString(R.string.btn_ok)) { startActivity(Intent(DownloadManager.ACTION_VIEW_DOWNLOADS)) }.show()
+            val snack = Snackbar.make(webView, R.string.downloaded, Snackbar.LENGTH_LONG)
+            snack.show()
 
         }
     }
@@ -64,57 +58,29 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
+        addFragment(BrowserFragment(), R.id.fragment)
         checkStoragePermission(this)
-
-        pref = getSharedPreferences(packageName + "pref", 0)
-
-//        val params = ConstraintLayout.LayoutParams(
-//                ConstraintLayout.LayoutParams.MATCH_PARENT,
-//                ConstraintLayout.LayoutParams.MATCH_PARENT
-//        )
-//        params.setMargins(0, statusBarHeight, 0, navigationBarHeight)
-//        webView.layoutParams = params
-
         setWebView(webView, progressBar)
-
-        window.decorView.systemUiVisibility =
-                View.SYSTEM_UI_FLAG_LAYOUT_STABLE or View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
 
         imm = getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
         window.setFlags(WindowManager.LayoutParams.FLAG_HARDWARE_ACCELERATED,
                 WindowManager.LayoutParams.FLAG_HARDWARE_ACCELERATED)
 
-        val url_before = pref!!.getString("url_before", "http://www.google.com")
-
-        val url = intent.data
-        if (url != null) {
-            webView.loadUrl(url!!.toString())
-            Toast.makeText(this, resources.getString(R.string.connectlink), Toast.LENGTH_SHORT).show()
-        } else {
-            webView.loadUrl(homepagelink)
-        }
+        webView.webViewClient = WebBrowserClient(this, webView, progressBar, url_edit, homepagelink)
+        webView.webChromeClient = ChromeClient(this, progressBar)
 
         skinEngine(this)
         setsettingsnow()
         window.addFlags(16777216)
 
-        webView.setOnScrollChangeListener { view, x, y, oldx, oldy -> run{
-            if(y + 100 < oldy){
-                url_edit.visibility = View.VISIBLE
-            }
-            if(y > oldy + 100){
-                url_edit.visibility = View.INVISIBLE
-            }
-        } }
-
-        url_edit.onFocusChangeListener = View.OnFocusChangeListener { v, hasFocus ->
-            if (!hasFocus) {
-                val ed = webView.url
-                url_edit.setText(ed)
-                imm!!.hideSoftInputFromWindow(url_edit.windowToken, 0)
-            }
+        val url_before = pref!!.getString("url_before", "http://www.google.com")
+        val url = intent.data
+        if (url != null) {
+            webView.loadUrl(url.toString())
+            Toast.makeText(this, resources.getString(R.string.connectlink), Toast.LENGTH_SHORT).show()
+        } else {
+            webView.loadUrl(url_before)
         }
-        webView.webViewClient = WebBrowserClient(this, webView, progressBar, url_edit, homepagelink)
 
         url_edit.setOnKeyListener(View.OnKeyListener { _, keyCode, event ->
             // TODO Auto-generated method stub
@@ -162,7 +128,7 @@ class MainActivity : AppCompatActivity() {
                 .setAllowedOverRoaming(false).setTitle(uRl)
                 .setDescription("Image")
                 .setDestinationInExternalPublicDir("/Download", uRl + "jpg")
-        mgr!!.enqueue(request)
+        mgr.enqueue(request)
     }
 
     override fun onNewIntent(intent: Intent) {
@@ -183,7 +149,7 @@ class MainActivity : AppCompatActivity() {
     override fun onStart() {
         super.onStart()
         skinEngine(this)
-        CookieSyncManager.createInstance(this)
+        CookieManager.getInstance().acceptCookie()
         if (intent.data != null) {
             webView.loadUrl(intent.data!!.toString())
         }
@@ -191,7 +157,6 @@ class MainActivity : AppCompatActivity() {
 
     override fun onPause() {
         super.onPause()
-        CookieSyncManager.getInstance().stopSync()
         webView.pauseTimers()
         unregisterReceiver(completeReceiver)
     }
@@ -201,7 +166,6 @@ class MainActivity : AppCompatActivity() {
         webView.resumeTimers()
         val completeFilter = IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE)
         registerReceiver(completeReceiver, completeFilter)
-        CookieSyncManager.getInstance().startSync()
         if (intent.data != null) {
             webView.loadUrl(intent.data!!.toString())
         }
@@ -237,15 +201,8 @@ class MainActivity : AppCompatActivity() {
         if (player.isPlaying) {
             player.stop()
         } else if (keyCode == KeyEvent.KEYCODE_BACK && webView.canGoBack()) {
-//            if (url_edit.visibility == View.VISIBLE) {
-//                url_edit.visibility = View.INVISIBLE
-//                val ed = webView.url.toString()
-//                url_edit.setText(ed)
-//                return false
-//            } else {
-                webView.goBack()
-                return false
-//            }
+            webView.goBack()
+            return false
         }
         return super.onKeyDown(keyCode, event)
     }
@@ -259,5 +216,18 @@ class MainActivity : AppCompatActivity() {
                 decorView!!.systemUiVisibility = uiOption
             }
         }
+    }
+
+    inline fun FragmentManager.inTransaction(func: FragmentTransaction.() -> FragmentTransaction) {
+        beginTransaction().func().commit()
+    }
+
+    fun AppCompatActivity.addFragment(fragment: Fragment, frameId: Int){
+        supportFragmentManager.inTransaction { add(frameId, fragment) }
+    }
+
+
+    fun AppCompatActivity.replaceFragment(fragment: Fragment, frameId: Int) {
+        supportFragmentManager.inTransaction{replace(frameId, fragment)}
     }
 }
