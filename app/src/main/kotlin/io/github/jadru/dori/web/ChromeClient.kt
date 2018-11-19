@@ -66,11 +66,11 @@ class ChromeClient(activity: BrowserActivity, var proBar:ProgressBar) : WebChrom
         AlertDialog.Builder(view.context)
                 .setTitle(mActivity!!.resources.getString(R.string.alert))
                 .setMessage(message)
-                .setPositiveButton(mActivity!!.resources.getString(R.string.btn_ok)){ dialog, which ->
+                .setPositiveButton(mActivity!!.resources.getString(R.string.btn_ok)){ _, _ ->
                     result.confirm()
                 }
 
-                .setNegativeButton(mActivity!!.resources.getString(R.string.btn_no)){ dialog, which ->
+                .setNegativeButton(mActivity!!.resources.getString(R.string.btn_no)){ _, _ ->
                     result.cancel()
                 }
                 .setCancelable(false)
@@ -87,7 +87,7 @@ class ChromeClient(activity: BrowserActivity, var proBar:ProgressBar) : WebChrom
         }
 
         mOriginalOrientation = mActivity!!.getRequestedOrientation()
-        val decor = mActivity!!.getWindow().getDecorView() as FrameLayout
+        val decor = mActivity!!.window.decorView as FrameLayout
         mFullscreenContainer = FullscreenHolder(mActivity!!)
         mFullscreenContainer!!.addView(view, COVER_SCREEN_PARAMS)
         decor.addView(mFullscreenContainer, COVER_SCREEN_PARAMS)
@@ -106,34 +106,34 @@ class ChromeClient(activity: BrowserActivity, var proBar:ProgressBar) : WebChrom
         }
 
         setFullscreen(false)
-        val decor = mActivity!!.getWindow().getDecorView() as FrameLayout
+        val decor = mActivity!!.window.decorView as FrameLayout
         decor.removeView(mFullscreenContainer)
         mFullscreenContainer = null
         mCustomView = null
         mCustomViewCallback!!.onCustomViewHidden()
-        mActivity!!.setRequestedOrientation(mOriginalOrientation)
+        mActivity!!.requestedOrientation = mOriginalOrientation
     }
 
     private fun setFullscreen(enabled: Boolean) {
-        val win = mActivity!!.getWindow()
-        val winParams = win.getAttributes()
+        val win = mActivity!!.window
+        val winParams = win.attributes
         val bits = WindowManager.LayoutParams.FLAG_FULLSCREEN
         if (enabled) {
             winParams.flags or bits
         } else {
             winParams.flags and bits
             if (mCustomView != null) {
-                mCustomView!!.setSystemUiVisibility(View.SYSTEM_UI_FLAG_VISIBLE)
+                mCustomView!!.systemUiVisibility = View.SYSTEM_UI_FLAG_VISIBLE
             } else {
-                mContentView!!.setSystemUiVisibility(View.SYSTEM_UI_FLAG_VISIBLE)
+                mContentView!!.systemUiVisibility = View.SYSTEM_UI_FLAG_VISIBLE
             }
         }
-        win.setAttributes(winParams)
+        win.attributes = winParams
     }
 
     private class FullscreenHolder(ctx: Context) : FrameLayout(ctx) {
         init {
-            setBackgroundColor(ctx.getResources().getColor(android.R.color.black))
+            setBackgroundColor(ctx.resources.getColor(android.R.color.black))
         }
 
         override
@@ -150,7 +150,7 @@ class ChromeClient(activity: BrowserActivity, var proBar:ProgressBar) : WebChrom
     override fun onShowFileChooser(webView:WebView, filePathCallback:ValueCallback<Array<Uri>>, fileChooserParams:FileChooserParams):Boolean {
         var mFilePathCallback = filePathCallback
         val intent = Intent(Intent.ACTION_GET_CONTENT)
-        intent.setType("*/*")
+        intent.type = ("*/*")
         val PICKFILE_REQUEST_CODE = 100
         mActivity!!.startActivityForResult(intent, PICKFILE_REQUEST_CODE)
         return true

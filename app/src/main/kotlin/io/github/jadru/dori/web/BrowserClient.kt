@@ -17,12 +17,17 @@ import android.view.KeyEvent
 import android.view.View
 import android.webkit.*
 import android.widget.EditText
+import android.widget.ImageView
+import android.widget.LinearLayout
 import android.widget.ProgressBar
 import io.github.jadru.dori.R
 import io.github.jadru.dori.function.saveUrl
 
-class WebBrowserClient(val activity: Activity, val webView: WebView,
-                       var progressBar: ProgressBar, var url_edit: EditText, var homepagelink: String) : WebViewClient() {
+class WebBrowserClient(val activity: Activity, val webView: WebView, var progressBar: ProgressBar,
+                       var url_edit: EditText, var pref: SharedPreferences?,
+                       val img_favicon: ImageView, val url_bar: LinearLayout) : WebViewClient() {
+
+    val url_homepage = pref!!.getString("url_homepage", "http://www.google.com")
 
     override fun shouldOverrideUrlLoading(view: WebView?, request: WebResourceRequest?): Boolean {
         var url = request!!.url.toString()
@@ -59,30 +64,18 @@ class WebBrowserClient(val activity: Activity, val webView: WebView,
     }
 
     override fun onReceivedSslError(view: WebView, handler: SslErrorHandler, error: SslError) {
-        val pref: SharedPreferences = activity.getSharedPreferences(activity.packageName + "pref", 0)
-        val sslagree = pref.getBoolean("sslagree", false)
+        val sslagree = pref!!.getBoolean("sslagree", false)
         if (sslagree) {
             val alt_bld = AlertDialog.Builder(activity)
-            alt_bld.setMessage(activity.resources.getString(R.string.ssltitle)).setCancelable(
-                    false)
-                    .setPositiveButton(activity.resources.getString(R.string.btn_no)
-                    ) { dialog, id ->
-                        handler.cancel()
+            alt_bld.setMessage(activity.resources.getString(R.string.ssltitle))
+            alt_bld.setPositiveButton(activity.resources.getString(R.string.btn_no)) { _, _ ->
                         webView.goBack()
-                    }
-                    .setNegativeButton(activity.resources.getString(R.string.btn_ok),
-                            object : DialogInterface.OnClickListener {
-                                override fun onClick(dialog: DialogInterface, id: Int) {
+            }
+            alt_bld.setNegativeButton(activity.resources.getString(R.string.btn_ok)) { _, _ ->
                                     handler.proceed()  //SSL 에러가 발생해도 계속 진행!
                                     Snackbar.make(webView, activity.resources.getString(R.string.recommendout), Snackbar.LENGTH_LONG)
-                                            .setAction(activity.resources.getString(R.string.back), object : View.OnClickListener {
-                                                override fun onClick(v: View) {
-                                                    webView.goBack()
-                                                }
-                                            }).show()
-                                    dialog.cancel()
-                                }
-                            })
+                                            .setAction(activity.resources.getString(R.string.back)) { webView.goBack() }.show()
+            }
             val alert = alt_bld.create()
             // Title for AlertDialog
             alert.setTitle("SSL Error")
@@ -91,14 +84,8 @@ class WebBrowserClient(val activity: Activity, val webView: WebView,
             alert.show()
         } else {
             val alt_bld = AlertDialog.Builder(activity)
-            alt_bld.setMessage(activity.resources.getString(R.string.ssltitle)).setCancelable(
-                    false)
-                    .setPositiveButton(activity.resources.getString(R.string.back),
-                            object : DialogInterface.OnClickListener {
-                                override fun onClick(dialog: DialogInterface, id: Int) {
-                                    webView.goBack()
-                                }
-                            })
+            alt_bld.setMessage(activity.resources.getString(R.string.ssltitle))
+            alt_bld.setPositiveButton(activity.resources.getString(R.string.back)) { _, _ -> webView.goBack() }
             val alert = alt_bld.create()
             // Title for AlertDialog
             alert.setTitle("SSL Error")
@@ -110,17 +97,19 @@ class WebBrowserClient(val activity: Activity, val webView: WebView,
 
     override fun onPageStarted(view: WebView, url: String, favicon: Bitmap?) {  // 페이지로딩이 시작되면
         super.onPageStarted(view, url, favicon)
-        progressBar.visibility = View.VISIBLE  // 프로그레스바 보이기
+        progressBar.visibility = View.VISIBLE
+        // show
         if (url_edit.isFocused) {
             url_edit.clearFocus()
         }
         url_edit.text = Editable.Factory.getInstance().newEditable(url)
+        img_favicon.setImageBitmap(webView.favicon)
     }
 
     override fun onPageFinished(view: WebView, url: String) {
         super.onPageFinished(view, url)
         progressBar.visibility = View.INVISIBLE
-        url_edit.visibility = View.INVISIBLE
+        // hide
         webView.isScrollContainer = true
         webView.loadUrl("javascript:window.getcolor.processHTML( (function (){var metas = document.getElementsByTagName('meta'); \n" +
                 "\n" +
@@ -130,24 +119,23 @@ class WebBrowserClient(val activity: Activity, val webView: WebView,
                 "      } \n" +
                 "   } \n" +
                 "\n" +
-                "    return \"\";})() );");
+                "    return \"\";})() );")
         if (!(url_edit.isFocused)) {
             val ed = webView.url
             url_edit.setText(ed)
         }
         CookieSyncManager.getInstance().sync()
-        saveUrl(activity, webView)
-
+        saveUrl(webView, pref!!)
+        img_favicon.setImageBitmap(webView.favicon)
     }
     override fun onLoadResource(view: WebView?, url: String?){
-        // 이미지 같은 리소스 로드 시
+        img_favicon.setImageBitmap(webView.favicon)
     }
 
     override fun doUpdateVisitedHistory(view: WebView?, url: String?, isReload: Boolean){
-//        webView.loadUrl(url)
         url_edit.setText(url)
-        saveUrl(activity, webView)
-        // 방문한 링크 업데이트 시
+        saveUrl(webView, pref!!)
+        img_favicon.setImageBitmap(webView.favicon)
     }
 
     override fun onFormResubmission(view: WebView, dontResend: Message, resend: Message) {
@@ -158,7 +146,8 @@ class WebBrowserClient(val activity: Activity, val webView: WebView,
     fun whenError() {
         webView.loadUrl("file:///android_asset/error.html")
         Snackbar.make(webView, activity.resources.getString(R.string.errorloadpage), Snackbar.LENGTH_LONG)
-                .setAction(activity.resources.getString(R.string.btn_ok)) { webView.loadUrl(homepagelink) }.show()
+                .setAction(activity.resources.getString(R.string.btn_ok)) { webView.loadUrl(url_homepage) }.show()
+        // show
     }
 
     override fun onUnhandledKeyEvent(view: WebView?, event: KeyEvent?){

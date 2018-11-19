@@ -1,18 +1,21 @@
 package io.github.jadru.dori.fragment
 
-import android.content.Context
+import android.app.DownloadManager
+import android.content.*
 import android.net.Uri
 import android.os.Bundle
+import android.support.design.widget.Snackbar
 import android.support.v4.app.Fragment
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
+import android.support.v7.app.AppCompatActivity
+import android.view.*
+import android.webkit.CookieManager
 
 import io.github.jadru.dori.R
 import io.github.jadru.dori.activity.BrowserActivity
-import io.github.jadru.dori.web.ChromeClient
-import io.github.jadru.dori.web.WebBrowserClient
-import io.github.jadru.dori.web.setWebView
+import io.github.jadru.dori.function.openFromintent
+import io.github.jadru.dori.function.saveUrl
+import io.github.jadru.dori.function.skinEngine
+import io.github.jadru.dori.web.*
 import kotlinx.android.synthetic.main.fragment_browser.*
 
 // TODO: Rename parameter arguments, choose names that match
@@ -34,6 +37,8 @@ class BrowserFragment : Fragment() {
     private var param1: String? = null
     private var param2: String? = null
     private var listener: OnFragmentInteractionListener? = null
+    val PREFS_FILENAME = "io.github.jadru.dori.prefs"
+    var pref: SharedPreferences? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -43,18 +48,37 @@ class BrowserFragment : Fragment() {
         }
     }
 
+    val completeReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context, intent: Intent) {
+            val snack = Snackbar.make(webView, R.string.downloaded, Snackbar.LENGTH_LONG)
+            snack.show()
+
+        }
+    }
+
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
                               savedInstanceState: Bundle?): View? {
         // Inflate the layout for this fragment
-        setWebView(webView, progressBar)
-        webView.webViewClient = WebBrowserClient(BrowserActivity(), webView, progressBar, url_edit, "http://www.google.com")
-        webView.webChromeClient = ChromeClient(BrowserActivity(), progressBar)
         return inflater.inflate(R.layout.fragment_browser, container, false)
     }
 
-    // TODO: Rename method, update argument and hook method into UI event
-    fun onButtonPressed(uri: Uri) {
-        listener?.onFragmentInteraction(uri)
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        pref = context!!.getSharedPreferences(PREFS_FILENAME, AppCompatActivity.MODE_PRIVATE)
+        setWebView(webView)
+        webView.webViewClient = WebBrowserClient(BrowserActivity(), webView, progressBar, url_edit, pref, img_favicon, url_bar)
+        webView.webChromeClient = ChromeClient(BrowserActivity(), progressBar)
+        openFromintent(webView, activity, pref!!)
+        SetUrlEdit(webView, url_edit, context, activity)
+
+        webView.setOnScrollChangeListener { _, _, y, _, oldy -> run{
+            if(y + 50 < oldy){
+                //show
+            }
+            if(y > oldy + 50){
+                //hide
+            }
+        } }
+
     }
 
     override fun onAttach(context: Context) {
@@ -71,31 +95,12 @@ class BrowserFragment : Fragment() {
         listener = null
     }
 
-    /**
-     * This interface must be implemented by activities that contain this
-     * fragment to allow an interaction in this fragment to be communicated
-     * to the activity and potentially other fragments contained in that
-     * activity.
-     *
-     *
-     * See the Android Training lesson [Communicating with Other Fragments]
-     * (http://developer.android.com/training/basics/fragments/communicating.html)
-     * for more information.
-     */
     interface OnFragmentInteractionListener {
         // TODO: Update argument type and name
         fun onFragmentInteraction(uri: Uri)
     }
 
     companion object {
-        /**
-         * Use this factory method to create a new instance of
-         * this fragment using the provided parameters.
-         *
-         * @param param1 Parameter 1.
-         * @param param2 Parameter 2.
-         * @return A new instance of fragment BrowserFragment.
-         */
         // TODO: Rename and change types and number of parameters
         @JvmStatic
         fun newInstance(param1: String, param2: String) =
@@ -106,4 +111,46 @@ class BrowserFragment : Fragment() {
                     }
                 }
     }
+
+    override fun onStart() {
+        super.onStart()
+        skinEngine(context!!)
+        CookieManager.getInstance().acceptCookie()
+        if (activity!!.intent.data != null) {
+            webView.loadUrl(activity!!.intent.data!!.toString())
+        }
+    }
+
+    override fun onPause() {
+        super.onPause()
+        webView.pauseTimers()
+        context!!.unregisterReceiver(completeReceiver)
+    }
+
+    override fun onResume() {
+        super.onResume()
+        webView.resumeTimers()
+        val completeFilter = IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE)
+        context!!.registerReceiver(completeReceiver, completeFilter)
+        if (activity!!.intent.data != null) {
+            webView.loadUrl(activity!!.intent.data!!.toString())
+        }
+        saveUrl(webView, pref!!)
+        skinEngine(context!!)
+    }
+
+    override fun onStop() {
+        super.onStop()
+        saveUrl(webView, pref!!)
+    }
+
+    fun myOnKeyDown(key_code: Int):Boolean {
+        if (key_code == KeyEvent.KEYCODE_BACK && webView.canGoBack()) {
+            webView.goBack()
+            return false
+        }else{
+            return true
+        }
+    }
+
 }

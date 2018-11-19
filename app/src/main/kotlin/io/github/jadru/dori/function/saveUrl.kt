@@ -1,12 +1,12 @@
 package io.github.jadru.dori.function
 
-import android.app.Activity
 import android.content.Context
 import android.content.SharedPreferences
+import android.support.v7.app.AppCompatActivity
 import android.webkit.WebView
+import io.github.jadru.dori.web.PREFS_FILENAME
 
-fun saveUrl(activity: Activity, webView: WebView){
-    val pref: SharedPreferences = activity.getSharedPreferences(activity.packageName + "pref", 0)
+fun saveUrl(webView: WebView, pref: SharedPreferences){
     val statusbarcolor = 0
     val editor = pref.edit()
     val url_before = webView.url

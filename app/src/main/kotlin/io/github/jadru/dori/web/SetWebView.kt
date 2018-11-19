@@ -1,15 +1,17 @@
 package io.github.jadru.dori.web
 
+import android.content.Context
 import android.net.Uri
+import android.support.v7.app.AppCompatActivity
 import android.view.View
 import android.webkit.*
-import android.widget.ProgressBar
 
 
 var mUploadMsg: ValueCallback<Uri>? = null
 val RC_FILE_CHOOSE = 1
+val PREFS_FILENAME = "io.github.jadru.dori.prefs"
 
-fun setWebView(webView: WebView, progressBar: ProgressBar) {
+fun setWebView(webView: WebView) {
 
     val webSettings = webView.settings  // 웹세팅 객체 생성
     webSettings.mediaPlaybackRequiresUserGesture = true
@@ -36,9 +38,6 @@ fun setWebView(webView: WebView, progressBar: ProgressBar) {
     webView.requestFocus()
 
     WebView.setWebContentsDebuggingEnabled(true)
-
     DownloadService(webView)
-
-
 
 }
